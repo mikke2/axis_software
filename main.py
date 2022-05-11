@@ -8,7 +8,7 @@ QWidget, QAction, QTabWidget, QVBoxLayout, QLabel,QGridLayout
 class MyTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
-        self.visual_debug_mode = True
+        self.visual_debug_mode = False
         self.moving_flag = False
         self.reading_flag =False
         self.colorVar = 0
@@ -22,7 +22,6 @@ class MyTabWidget(QWidget):
         self.tabs = QTabWidget()
         self.tab1 = QWidget()
         self.tab2 = QWidget()
-        self.tabs.resize(300, 200)
 
         # Add tabs
         self.tabs.addTab(self.tab1, "Move")
@@ -38,10 +37,14 @@ class MyTabWidget(QWidget):
         self.button_zero = QPushButton('Zero', self)
         self.button_zero.clicked.connect(self.on_zero_button_click)
 
+        self.button_get_offset = QPushButton('Get_offset', self)
+        self.button_get_offset.clicked.connect(self.on_button_get_offset)
+
         self.tab1.layout = QVBoxLayout(self)
         self.tab1.layout.addWidget(self.button_move)
         self.tab1.layout.addWidget(self.button_zero)
         self.tab1.layout.addWidget(self.button_stop)
+        self.tab1.layout.addWidget(self.button_get_offset)
 
         self.tab1.setLayout(self.tab1.layout)
         self.tab2_label_layout = QGridLayout(self)
@@ -52,12 +55,13 @@ class MyTabWidget(QWidget):
         self.labels = []
         for x in range(14):
             self.labels.append(QLabel(self))
-
+            self.labels[x].setAlignment(Qt.AlignCenter)
+            self.labels[x].adjustSize()
 
         for x in range(2):
             for y in range(7):
                 self.tab2_label_layout.addWidget(self.labels[7*x + y], x, y)
-                self.labels[7 * x + y].setText("0.0")
+                self.labels[7 * x + y].setText("0")
         self.tab2_label_layout.addWidget( self.button_read_data, 3, 0)
 
         self.tab2.setLayout(self.tab2_label_layout)
@@ -92,7 +96,7 @@ class MyTabWidget(QWidget):
         if self.visual_debug_mode:
             print("test")
             for i in range(14):
-                self.setLabelcolor(i, (255 - self.colorVar), self.colorVar,0)
+                self.setLabelcolor(i,0,self.colorVar,(255 - self.colorVar))
                 self.colorVar += 1
                 if self.colorVar > 255:
                     self.colorVar = 0
@@ -106,9 +110,30 @@ class MyTabWidget(QWidget):
                     # declaring byte value
                     int_val = int.from_bytes(can_data[1:5], "big", signed=True)
                     self.labels[int(can_data[0])-1].setText(str(int_val))
+
+                    if int_val < 0:
+                        pass
+                    elif int_val >= 0 and int_val < 5000:
+                        int_val_out = int_val / 20
+                        self.setLabelcolor(int(can_data[0])-1,0 , int_val_out, (255 - int_val_out))
+                    elif int_val >= 5000 and int_val < 30000:
+                        int_val_out = (int_val - 5000) / 99
+                        self.setLabelcolor(int(can_data[0]) - 1, int_val_out, (255 - int_val_out),0)
+
                 if(can_id == 0x426):
                     int_val = int.from_bytes(can_data[1:5], "big", signed=True)
                     self.labels[7 + (int(can_data[0]) - 1)].setText(str(int_val))
+
+                    int_val_out = int_val / 59
+
+                    if int_val < 0:
+                        pass
+                    elif int_val >= 0 and int_val < 5000:
+                        int_val_out = int_val / 20
+                        self.setLabelcolor(7 + int(can_data[0]) - 1, 0, int_val_out, (255 - int_val_out))
+                    elif int_val >= 5000 and int_val < 30000:
+                        int_val_out = (int_val - 5000) / 99
+                        self.setLabelcolor(7 + int(can_data[0]) - 1, int_val_out, (255 - int_val_out), 0)
 
             except TimeoutError:
                 #print('CAN read timeout')
@@ -119,7 +144,7 @@ class MyTabWidget(QWidget):
 
     def setLabelcolor(self,label_num,R,G,B):
         strOut = "background-color:rgb(" + str(R) + "," + str(G) + "," + str(B) + ")"
-        print(strOut)
+        #print(strOut)
         self.labels[label_num].setStyleSheet(strOut)
 
     @pyqtSlot()
@@ -155,6 +180,18 @@ class MyTabWidget(QWidget):
             self.ch.start()
             # normal frame
             self.ch.write(0x200, b'abcdefgh')
+            # close everything
+            self.ch.stop()
+            print("Message sent stop")
+
+    @pyqtSlot()
+    def on_button_get_offset(self):
+        print('Send command to stop move')
+        if not self.visual_debug_mode:
+            # start receiving data
+            self.ch.start()
+            # normal frame
+            self.ch.write(0x204, b'abcdefgh')
             # close everything
             self.ch.stop()
             print("Message sent stop")
@@ -199,9 +236,12 @@ class MainWindow(QMainWindow):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-
+    desktop = QApplication.desktop()
+    screenRect = desktop.screenGeometry()
+    height = int(screenRect.height()*0.9)
+    width = screenRect.width()
     window = MainWindow()
-    window.resize(500, 500)
+    window.resize(width, height)
     window.show()
 
     app.exec()
