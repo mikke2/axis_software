@@ -2,6 +2,7 @@ import sys
 import candle_driver
 from PyQt5.QtCore import QSize, Qt,QTimer,QDateTime
 from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, \
 QWidget, QAction, QTabWidget, QVBoxLayout, QLabel,QGridLayout
 
@@ -56,7 +57,7 @@ class MyTabWidget(QWidget):
         for x in range(14):
             self.labels.append(QLabel(self))
             self.labels[x].setAlignment(Qt.AlignCenter)
-            self.labels[x].adjustSize()
+            self.labels[x].setFont(QFont('Arial', 22))
 
         for x in range(2):
             for y in range(7):
@@ -113,11 +114,11 @@ class MyTabWidget(QWidget):
 
                     if int_val < 0:
                         pass
-                    elif int_val >= 0 and int_val < 5000:
-                        int_val_out = int_val / 20
+                    elif int_val >= 0 and int_val < 3500:
+                        int_val_out = int_val / 13
                         self.setLabelcolor(int(can_data[0])-1,0 , int_val_out, (255 - int_val_out))
-                    elif int_val >= 5000 and int_val < 30000:
-                        int_val_out = (int_val - 5000) / 99
+                    elif int_val >= 3500 and int_val < 7000:
+                        int_val_out = (int_val - 3500) / 13
                         self.setLabelcolor(int(can_data[0]) - 1, int_val_out, (255 - int_val_out),0)
 
                 if(can_id == 0x426):
@@ -128,11 +129,11 @@ class MyTabWidget(QWidget):
 
                     if int_val < 0:
                         pass
-                    elif int_val >= 0 and int_val < 5000:
-                        int_val_out = int_val / 20
+                    elif int_val >= 0 and int_val < 3500:
+                        int_val_out = int_val / 13
                         self.setLabelcolor(7 + int(can_data[0]) - 1, 0, int_val_out, (255 - int_val_out))
-                    elif int_val >= 5000 and int_val < 30000:
-                        int_val_out = (int_val - 5000) / 99
+                    elif int_val >= 3500 and int_val < 7000:
+                        int_val_out = (int_val - 3500) / 13
                         self.setLabelcolor(7 + int(can_data[0]) - 1, int_val_out, (255 - int_val_out), 0)
 
             except TimeoutError:
