@@ -2,14 +2,16 @@ import sys
 import candle_driver
 from PyQt5.QtCore import QSize, Qt,QTimer,QDateTime
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont,QPixmap,QIcon
+from PyQt5.QtWidgets import QSizePolicy
+
 from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, \
 QWidget, QAction, QTabWidget, QVBoxLayout, QLabel,QGridLayout
 
 class MyTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
-        self.visual_debug_mode = False
+        self.visual_debug_mode = True
         self.moving_flag = False
         self.reading_flag =False
         self.colorVar = 0
@@ -23,23 +25,30 @@ class MyTabWidget(QWidget):
         self.tabs = QTabWidget()
         self.tab1 = QWidget()
         self.tab2 = QWidget()
-
         # Add tabs
-        self.tabs.addTab(self.tab1, "Move")
-        self.tabs.addTab(self.tab2, "Sensors")
+        self.tabs.addTab(self.tab2, "Данные")
+        self.tabs.addTab(self.tab1, "Управление")
 
         # Create first tab "Move"
-        self.button_move = QPushButton('Start_moving', self)
+        self.button_move = QPushButton('Начать движение', self)
+        self.button_move.setFont(QFont('Arial', 22))
+        self.button_move.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.button_move.clicked.connect(self.on_move_button_click)
 
-        self.button_stop = QPushButton('Stop', self)
+        self.button_stop = QPushButton('Остановка', self)
+        self.button_stop.setFont(QFont('Arial', 22))
+        self.button_stop.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.button_stop.clicked.connect(self.on_stop_button_click)
 
-        self.button_zero = QPushButton('Zero', self)
-        self.button_zero.clicked.connect(self.on_zero_button_click)
+        self.button_zero = QPushButton('Нулевое положение', self)
+        self.button_zero.setFont(QFont('Arial', 22))
+        self.button_zero.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        #self.button_zero.clicked.connect(self.on_zero_button_click)
 
-        self.button_get_offset = QPushButton('Get_offset', self)
-        self.button_get_offset.clicked.connect(self.on_button_get_offset)
+        self.button_get_offset = QPushButton('Обнуление', self)
+        self.button_get_offset.setFont(QFont('Arial', 22))
+        self.button_get_offset.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        #self.button_get_offset.clicked.connect(self.on_button_get_offset)
 
         self.tab1.layout = QVBoxLayout(self)
         self.tab1.layout.addWidget(self.button_move)
@@ -50,20 +59,76 @@ class MyTabWidget(QWidget):
         self.tab1.setLayout(self.tab1.layout)
         self.tab2_label_layout = QGridLayout(self)
 
-        self.button_read_data = QPushButton('Read_data', self)
+        self.button_read_data = QPushButton('Считывание данных', self)
+        self.button_read_data.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.button_read_data.setFont(QFont('Times', 10))
+        #self.button_read_data.setIcon(QIcon('image.png'))
         self.button_read_data.clicked.connect(self.on_read_button_click)
 
+        self.button_visual_start = QPushButton('Движение по синусу', self)
+        self.button_visual_start.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.button_visual_start.setFont(QFont('Times', 10))
+        self.button_visual_start.clicked.connect(self.on_move_button_click)
+
+        self.button_visual_stop = QPushButton('Остановка', self)
+        self.button_visual_stop.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.button_visual_stop.setFont(QFont('Times', 10))
+        self.button_visual_stop.clicked.connect(self.on_stop_button_click)
+
+        self.button_visual_zero = QPushButton('Нулевое положение', self)
+        self.button_visual_zero.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.button_visual_zero.setFont(QFont('Times', 10))
+        self.button_visual_zero.clicked.connect(self.on_zero_button_click)
+
+        self.button_visual_get_offset = QPushButton('Обнуление', self)
+        self.button_visual_get_offset.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.button_visual_get_offset.setFont(QFont('Times', 10))
+        self.button_visual_get_offset.clicked.connect(self.on_button_get_offset)
+
+        self.button_visual_up = QPushButton('Движение вверх', self)
+        self.button_visual_up.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.button_visual_up.setFont(QFont('Times', 10))
+        self.button_visual_up.clicked.connect(self.on_up_button_click)
+
+        self.button_visual_down = QPushButton('Движение вниз', self)
+        self.button_visual_down.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.button_visual_down.setFont(QFont('Times', 10))
+        self.button_visual_down.clicked.connect(self.on_down_button_click)
+
         self.labels = []
+        self.pictureLabels = []
         for x in range(14):
             self.labels.append(QLabel(self))
             self.labels[x].setAlignment(Qt.AlignCenter)
             self.labels[x].setFont(QFont('Arial', 22))
 
         for x in range(2):
+            self.pictureLabels.append(QLabel(self))
+
+        pixmap1 = QPixmap('pic_2.png')
+        pixmap2 = QPixmap('pic_1.png')
+
+        self.pictureLabels[0].setPixmap(pixmap1)
+        self.pictureLabels[1].setPixmap(pixmap2)
+
+
+        for x in range(2):
             for y in range(7):
                 self.tab2_label_layout.addWidget(self.labels[7*x + y], x, y)
                 self.labels[7 * x + y].setText("0")
-        self.tab2_label_layout.addWidget( self.button_read_data, 3, 0)
+                strOut = "background-color:rgb(" + str(0) + "," + str(0) + "," + str(255) + ")"
+                # print(strOut)
+                self.labels[7 * x + y].setStyleSheet(strOut)
+
+        self.tab2_label_layout.addWidget(self.pictureLabels[0], 0, 7)
+        self.tab2_label_layout.addWidget(self.pictureLabels[1], 1, 7)
+        self.tab2_label_layout.addWidget(self.button_visual_up, 2, 0)
+        self.tab2_label_layout.addWidget(self.button_visual_down, 2, 1)
+        self.tab2_label_layout.addWidget(self.button_visual_start, 2, 2)
+        self.tab2_label_layout.addWidget(self.button_visual_zero, 2, 3)
+        self.tab2_label_layout.addWidget(self.button_visual_stop, 2, 4)
+        self.tab2_label_layout.addWidget(self.button_visual_get_offset, 2, 5)
+        self.tab2_label_layout.addWidget(self.button_read_data, 2, 6)
 
         self.tab2.setLayout(self.tab2_label_layout)
 
@@ -106,14 +171,14 @@ class MyTabWidget(QWidget):
             self.ch.start()
             # normal frame
             try:
-                frame_type, can_id, can_data, extended, ts = self.ch.read(10)
+                frame_type, can_id, can_data, extended, ts = self.ch.read(1)
                 if(can_id == 0x416):
                     # declaring byte value
                     int_val = int.from_bytes(can_data[1:5], "big", signed=True)
                     self.labels[int(can_data[0])-1].setText(str(int_val))
 
                     if int_val < 0:
-                        pass
+                        self.setLabelcolor(int(can_data[0]) - 1, 0, 0, 255)
                     elif int_val >= 0 and int_val < 3500:
                         int_val_out = int_val / 13
                         self.setLabelcolor(int(can_data[0])-1,0 , int_val_out, (255 - int_val_out))
@@ -128,7 +193,7 @@ class MyTabWidget(QWidget):
                     int_val_out = int_val / 59
 
                     if int_val < 0:
-                        pass
+                        self.setLabelcolor(7 + int(can_data[0]) - 1, 0, 0, 255)
                     elif int_val >= 0 and int_val < 3500:
                         int_val_out = int_val / 13
                         self.setLabelcolor(7 + int(can_data[0]) - 1, 0, int_val_out, (255 - int_val_out))
@@ -140,7 +205,6 @@ class MyTabWidget(QWidget):
                 #print('CAN read timeout')
                 # close everything
                 self.ch.stop()
-
 
 
     def setLabelcolor(self,label_num,R,G,B):
@@ -197,7 +261,29 @@ class MyTabWidget(QWidget):
             self.ch.stop()
             print("Message sent stop")
 
+    @pyqtSlot()
+    def on_up_button_click(self):
+        print('Send command to up move')
+        if not self.visual_debug_mode:
+            # start receiving data
+            self.ch.start()
+            # normal frame
+            self.ch.write(0x203, b'\x01\xFF\x00\x0A\x00\x00\x00\x00')
+            # close everything
+            self.ch.stop()
+            print("Message sent stop")
 
+    @pyqtSlot()
+    def on_down_button_click(self):
+        print('Send command to down move')
+        if not self.visual_debug_mode:
+            # start receiving data
+            self.ch.start()
+            # normal frame
+            self.ch.write(0x203, b'\x00\xFF\x00\x0A\x00\x00\x00\x00')
+            # close everything
+            self.ch.stop()
+            print("Message sent stop")
 
     @pyqtSlot()
     def on_read_button_click(self):
@@ -212,7 +298,7 @@ class MyTabWidget(QWidget):
                 # close everything
                 self.ch.stop()
             print('Start timer')
-            self.timer.start(10)
+            self.timer.start(5) #10
 
         else:
             print('Stop reading')
@@ -243,7 +329,7 @@ if __name__ == '__main__':
     width = screenRect.width()
     window = MainWindow()
     window.resize(width, height)
+    window.setWindowTitle("TBM Axis Control")
     window.show()
-
     app.exec()
 
