@@ -11,7 +11,7 @@ QWidget, QAction, QTabWidget, QVBoxLayout, QLabel,QGridLayout
 class MyTabWidget(QWidget):
     def __init__(self, parent):
         super(QWidget, self).__init__(parent)
-        self.visual_debug_mode = True
+        self.visual_debug_mode = False
         self.moving_flag = False
         self.reading_flag =False
         self.colorVar = 0
@@ -159,51 +159,62 @@ class MyTabWidget(QWidget):
         self.device.close()
 
     def getForceData(self):
+        print("0")
         if self.visual_debug_mode:
-            print("test")
+
             for i in range(14):
                 self.setLabelcolor(i,0,self.colorVar,(255 - self.colorVar))
                 self.colorVar += 1
                 if self.colorVar > 255:
                     self.colorVar = 0
         else:
+            print("0_1")
             # start receiving data
-            self.ch.start()
-            # normal frame
             try:
-                frame_type, can_id, can_data, extended, ts = self.ch.read(1)
-                if(can_id == 0x416):
-                    # declaring byte value
-                    int_val = int.from_bytes(can_data[1:5], "big", signed=True)
-                    self.labels[int(can_data[0])-1].setText(str(int_val))
+                print("0_1_1")
 
-                    if int_val < 0:
-                        self.setLabelcolor(int(can_data[0]) - 1, 0, 0, 255)
-                    elif int_val >= 0 and int_val < 3500:
-                        int_val_out = int_val / 13
-                        self.setLabelcolor(int(can_data[0])-1,0 , int_val_out, (255 - int_val_out))
-                    elif int_val >= 3500 and int_val < 7000:
-                        int_val_out = (int_val - 3500) / 13
-                        self.setLabelcolor(int(can_data[0]) - 1, int_val_out, (255 - int_val_out),0)
+                if self.ch.start():
+                    print("1")
+                    # normal frame
 
-                if(can_id == 0x426):
-                    int_val = int.from_bytes(can_data[1:5], "big", signed=True)
-                    self.labels[7 + (int(can_data[0]) - 1)].setText(str(int_val))
+                    frame_type, can_id, can_data, extended, ts = self.ch.read(25)
+                    if(can_id == 0x416):
+                        print("2")
+                        # declaring byte value
+                        int_val = int.from_bytes(can_data[1:5], "big", signed=True)
+                        int_val_out = 0
+                        self.labels[int(can_data[0])-1].setText(str(int_val))
+                        print("2_1")
 
-                    int_val_out = int_val / 59
+                        if int_val < 0:
+                            self.setLabelcolor(int(can_data[0]) - 1, 0, 0, 255)
+                        elif int_val >= 0 and int_val < 3500:
+                            int_val_out = int_val / 14
+                            self.setLabelcolor(int(can_data[0])-1,0 , int_val_out, (255 - int_val_out))
+                        elif int_val >= 3500 and int_val < 7000:
+                            int_val_out = (int_val - 3500) / 14
+                            self.setLabelcolor(int(can_data[0]) - 1, int_val_out, (255 - int_val_out),0)
+                        print("2_2")
 
-                    if int_val < 0:
-                        self.setLabelcolor(7 + int(can_data[0]) - 1, 0, 0, 255)
-                    elif int_val >= 0 and int_val < 3500:
-                        int_val_out = int_val / 13
-                        self.setLabelcolor(7 + int(can_data[0]) - 1, 0, int_val_out, (255 - int_val_out))
-                    elif int_val >= 3500 and int_val < 7000:
-                        int_val_out = (int_val - 3500) / 13
-                        self.setLabelcolor(7 + int(can_data[0]) - 1, int_val_out, (255 - int_val_out), 0)
-
+                    if(can_id == 0x426):
+                        print("3")
+                        int_val = int.from_bytes(can_data[1:5], "big", signed=True)
+                        self.labels[7 + (int(can_data[0]) - 1)].setText(str(int_val))
+                        int_val_out = 0
+                        print("3_1")
+                        if int_val < 0:
+                            self.setLabelcolor(7 + int(can_data[0]) - 1, 0, 0, 255)
+                        elif int_val >= 0 and int_val < 3500:
+                            int_val_out = int_val / 14
+                            self.setLabelcolor(7 + int(can_data[0]) - 1, 0, int_val_out, (255 - int_val_out))
+                        elif int_val >= 3500 and int_val < 7000:
+                            int_val_out = (int_val - 3500) / 14
+                            self.setLabelcolor(7 + int(can_data[0]) - 1, int_val_out, (255 - int_val_out), 0)
+                        print("3_2")
             except TimeoutError:
                 #print('CAN read timeout')
                 # close everything
+                print("4")
                 self.ch.stop()
 
 
@@ -298,7 +309,7 @@ class MyTabWidget(QWidget):
                 # close everything
                 self.ch.stop()
             print('Start timer')
-            self.timer.start(5) #10
+            self.timer.start(1) #10
 
         else:
             print('Stop reading')
